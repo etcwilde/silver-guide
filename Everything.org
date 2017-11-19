@@ -13,7 +13,6 @@ While the content is coming from a 3-ring binder, the content is in no particula
 
 
 * Data Structures
-
 ** Graph
 
 *** Adjacency List
@@ -170,3 +169,83 @@ This implementation is not a di-graph.
  : Cost from 1 to 2 32
  : 2 and 3 connected: false
  : 0 and 1 connected: true
+
+** Fenwick Trees
+
+The Fenwick tree makes computing range sums fast (~O(log n)~).
+Updating them is pretty fast too.
+
+#+BEGIN_SRC C++ :results output :exports both
+#include <iostream>
+#include <vector>
+template<typename T, typename VT = typename T::value_type>
+class FenwickTree {
+ public:
+	FenwickTree(T elements) {
+		// O(n log n), could be O(n) though
+		_tree.resize(elements.size() + 1);
+		for (size_t i {0}; i < elements.size(); ++i)
+			add(i + 1, elements.at(i));
+	}
+
+	void add(size_t p, VT value) {
+		if (p == 0) throw std::out_of_range("Position cannot be 0");
+		if (p > _tree.size() - 1) _tree.resize(_tree.size() + p - _tree.size() + 1, 0);
+		while (p < _tree.size()) {
+			_tree[p] += value;
+			p += p & -p;
+		}
+	}
+
+	size_t size() const { return _tree.size(); }
+
+	VT sum(size_t i) {
+		VT s(0);
+		while (i > 0) {
+			s += _tree.at(i);
+			i -= i & -i;
+		}
+		return s;
+	}
+
+	template<typename Type>
+	friend std::ostream & operator<<(std::ostream & os, FenwickTree<Type> const & ft);
+private:
+	std::vector<VT> _tree;
+};
+
+template<typename T>
+std::ostream & operator<<(std::ostream & os, FenwickTree<T> const & ft) {
+	for (auto el: ft._tree) os << el << ' ';
+	return os;
+}
+
+std::ostream & operator<<(std::ostream & os, std::vector<int> const & nums) {
+	for (auto el: nums) os << el << ' ';
+	return os;
+}
+
+int main() {
+	std::vector<int> v {1, 2, 3, 4};
+	FenwickTree<std::vector<int>> f (v);
+	std::cout << "Numbers: " << v << std::endl;
+	std::cout << "Tree contents: " << f << std::endl;
+	std::cout << "Sum of the first two numbers: " << f.sum(2) << std::endl;
+
+	// Fenwick Trees are 1-indexed
+	f.add(1, 2); // Add 2 to the first number
+	std::cout << "Updated Numbers: " << std::vector<int> {3, 2, 3, 4} << std::endl;
+	std::cout << "Updated Tree: " << f << std::endl;
+	std::cout << "Sum of the first two numbers: " << f.sum(2) << std::endl;
+	std::cout << "Sum of the first three numbers: " << f.sum(3) << std::endl;
+}
+#+END_SRC
+
+#+RESULTS:
+: Numbers: 1 2 3 4
+: Tree contents: 0 1 3 3 10
+: Sum of the first two numbers: 3
+: Updated Numbers: 3 2 3 4
+: Updated Tree: 0 3 5 3 12
+: Sum of the first two numbers: 5
+: Sum of the first three numbers: 8
