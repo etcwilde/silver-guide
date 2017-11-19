@@ -1,0 +1,11 @@
+#+STARTUP: showall
+#+TITLE: My Big Book of Everything
+#+PROPERTY: header-args:C++ :main no :results output :flags -std=c++17 -Wall -pedantic -Werror
+
+
+This is a collection of algorithms and data structures that I've collected and found useful at some point.
+Some of these have sources, if I remember where they came from, I'll try to cite it.
+It is time to take it from being mere scribbles in a 3-ring binder and breath some digital life into it.
+Hopefully this will be as useful to others as it has been to me.
+
+While the content is coming from a 3-ring binder, the content is in no particular order. I'll try to re-organize it in a way that makes sense, but there are no guarantees.
