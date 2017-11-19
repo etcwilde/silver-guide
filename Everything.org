@@ -16,6 +16,8 @@ While the content is coming from a 3-ring binder, the content is in no particula
 
 ** Graph
 
+*** Adjacency List
+
 This is probably my favourite graph implementation base. It's fairly straight-forward, using a map to map between a node and the adjacent nodes. This is a directed graph, but could be changed very easily by modifying the ~add~ method to include ~_edges.insert({to, {{from}, {from}}})~ as well. This graph is very dynamic, it is very easy to grow and quite versatile for any type of graph.
 
 #+NAME: Adjacency List Graph
@@ -106,3 +108,65 @@ int main(int argc, char** argv) {
 : Multiples of 1: [ 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 ]
 : Multiples of 2: [ 0 2 4 6 8 10 12 14 16 18 20 ]
 : Multiples of 3: [ 0 3 6 9 12 15 18 ]
+
+*** Adjacency Matrix
+
+This is a bit more memory-expensive than the adjacency list, which is usually computationally cheap enough that the adjacency list graph really should be used. I haven't profiled it or anything, but the adjacency matrix _might_ be faster for accesses. It is cheaper to navigate both directions through the graph though, simply selecting either the correct row or column.
+
+This implementation is not a di-graph.
+
+ #+NAME: Adjacency Matrix Graph
+ #+BEGIN_SRC C++ :results output :exports both
+  #include <iostream>
+  #include <vector>
+
+  template<typename Value_Type>
+  class Graph {
+  public:
+    /**
+       Construct a new graph with N nodes
+    ,*/
+    Graph (size_t N): _matrix(std::vector<std::vector<Value_Type>>(N, std::vector<Value_Type>(N, {}))) {}
+
+    /**
+       Set the weight of an edge between two nodes
+    ,*/
+    void add(size_t from, size_t to, Value_Type w) {
+      _matrix.at(from).at(to) = w;
+      _matrix.at(to).at(from) = w;
+    }
+
+    /**
+       Get adjacent nodes (nodes with a non {} Value_Type on the edge)
+    ,*/
+    std::vector<size_t> getAdjacent(size_t node) {
+      std::vector<size_t> vec;
+      for (size_t i {0}; i < _matrix.at(node).size(); i++) {
+        if (_matrix.at(node).at(i) != Value_Type {}) vec.push_back(i);
+      }
+      return vec;
+    }
+
+   Value_Type const & at(size_t from, size_t to) const { return _matrix.at(from).at(to); }
+   bool connected(size_t from, size_t to) const { return _matrix.at(from).at(to) != Value_Type {}; }
+	 size_t nodes() const { return _matrix.size(); }
+
+  private:
+    std::vector<std::vector<Value_Type>> _matrix;
+  };
+
+ int main() {
+   Graph<int> G(10);
+   G.add(0, 1, 1);
+   G.add(0, 2, 2);
+   G.add(1, 2, 32);
+   std::cout << "Cost from 1 to 2 " << G.at(1, 2) << std::endl;
+   std::cout << "2 and 3 connected: " << std::boolalpha << G.connected(2, 3) << std::endl;
+   std::cout << "0 and 1 connected: " << std::boolalpha << G.connected(0, 1) << std::endl;
+ }
+ #+END_SRC
+
+ #+RESULTS: Adjacency Matrix Graph
+ : Cost from 1 to 2 32
+ : 2 and 3 connected: false
+ : 0 and 1 connected: true
