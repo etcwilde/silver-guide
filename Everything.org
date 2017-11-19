@@ -9,3 +9,100 @@ It is time to take it from being mere scribbles in a 3-ring binder and breath so
 Hopefully this will be as useful to others as it has been to me.
 
 While the content is coming from a 3-ring binder, the content is in no particular order. I'll try to re-organize it in a way that makes sense, but there are no guarantees.
+
+
+
+* Data Structures
+
+** Graph
+
+This is probably my favourite graph implementation base. It's fairly straight-forward, using a map to map between a node and the adjacent nodes. This is a directed graph, but could be changed very easily by modifying the ~add~ method to include ~_edges.insert({to, {{from}, {from}}})~ as well. This graph is very dynamic, it is very easy to grow and quite versatile for any type of graph.
+
+#+NAME: Adjacency List Graph
+#+BEGIN_SRC C++ :results output :exports both
+#include <iostream>
+#include <map>
+#include <set>
+#include <vector>
+
+template<typename Node_Type>
+class Graph {
+public:
+	Graph () {}
+
+	/**
+		 Add edge between from and to nodes
+
+		 from: starting nodes
+		 to:   ending node
+	,*/
+	void add(Node_Type const & from, Node_Type const & to) {
+	if (_edges.count(from) == 0) _edges.insert({from, {{to}, {to}}});
+	else if (std::get<1>(_edges.at(from)).count(to) == 0) {
+		std::get<0>(_edges.at(from)).push_back(to);
+		std::get<1>(_edges.at(from)).insert(to);
+	}
+	// Add the to node as well
+	if (_edges.count(to) == 0) _edges.insert({to, {{},{}}});
+}
+
+/**
+	 Add node to graph, but is not adjacent to anyone
+,*/
+void add(Node_Type const & node) {
+	if (_edges.count(node) == 0) _edges.insert({node, {{},{}}});
+}
+
+/**
+	 Get adjacent nodes to a given node
+
+	 node: Node to find adjacent nodes to
+,*/
+std::vector<Node_Type> const & getAdjacent(Node_Type const & node) const {
+	return std::get<0>(_edges.at(node));
+}
+
+/**
+	 Check if the graph contains a given node
+,*/
+inline bool contains(Node_Type const & node) const { return _edges.count(node) != 0; }
+
+/**
+	 Number of nodes in the graph
+,*/
+inline size_t nodes() const { return _edges.size(); }
+
+private:
+
+	// Vector provides order, set provides uniqueness
+	// If one of the properties is not required, remove the corresponding type
+	std::map<Node_Type, std::pair<std::vector<Node_Type>,  std::set<Node_Type>>> _edges;
+};
+
+std::ostream & operator<<(std::ostream & os, std::vector<int> v) {
+	os << "[ ";
+	for( auto el: v) os << el << ' ';
+	os << ']';
+}
+
+int main(int argc, char** argv) {
+	Graph<int> G;
+
+	for (int i {0}; i <= 20; i++) {
+		G.add(1, i);
+		if (i % 2 == 0) G.add(2, i);
+		if (i % 3 == 0) G.add(3, i);
+	}
+
+	G.add(1, 20); // No effect!
+
+	std::cout << "Multiples of 1: " << G.getAdjacent(1) << std::endl;
+	std::cout << "Multiples of 2: " << G.getAdjacent(2) << std::endl;
+	std::cout << "Multiples of 3: " << G.getAdjacent(3) << std::endl;
+}
+#+END_SRC
+
+#+RESULTS: Adjacency List Graph
+: Multiples of 1: [ 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 ]
+: Multiples of 2: [ 0 2 4 6 8 10 12 14 16 18 20 ]
+: Multiples of 3: [ 0 3 6 9 12 15 18 ]
